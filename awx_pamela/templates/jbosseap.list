@@ -1,0 +1,12 @@
+EMEA|DEV|jbosseap|jbosseap_emea_dev_core|none|CORE
+EMEA|STG|jbosseap|jbosseap_emea_stg_core|none|CORE
+EMEA|PRD|jbosseap|jbosseap_emea_prd_core|none|CORE
+AMER|DEV|jbosseap|jbosseap_amer_dev_core|iv2amer|CORE
+AMER|STG|jbosseap|jbosseap_amer_stg_core|iv2amer|CORE
+AMER|PRD|jbosseap|jbosseap_amer_prd_core|iv2amer|CORE
+APAC|DEV|jbosseap|jbosseap_apac_dev_core|iv2apac|CORE
+APAC|STG|jbosseap|jbosseap_apac_stg_core|iv2apac|CORE
+APAC|PRD|jbosseap|jbosseap_apac_prd_core|iv2apac|CORE
+EMEA|DEV|csa_imported_jbosseap|csa_imported_jbosseap_emea_dev_core|none|CORE
+EMEA|STG|csa_imported_jbosseap|csa_imported_jbosseap_emea_stg_core|none|CORE
+EMEA|PRD|csa_imported_jbosseap|csa_imported_jbosseap_emea_prd_core|none|CORE

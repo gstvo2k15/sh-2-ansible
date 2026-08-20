@@ -1,0 +1,13 @@
+{
+    "hostname": "narvlii24666",
+    "fqdn": "narvlii24666.xmp.net.intra",
+    "environment": "STG",
+    "product_name": "dpi_upgraded_tomcat",
+    "ecosystem": "FESTER",
+    "provider": "vmware",
+    "os": {
+        "name": "RHEL",
+        "type": "LINUX",
+        "version": "9"
+    }
+}

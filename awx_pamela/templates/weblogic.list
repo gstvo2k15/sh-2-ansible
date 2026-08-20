@@ -1,0 +1,7 @@
+EMEA|DEV|weblogic|weblogic_emea_dev_core|none|CORE
+EMEA|STG|weblogic|weblogic_emea_stg_core|none|CORE
+EMEA|PRD|weblogic|weblogic_emea_prd_core|none|CORE
+APAC|DEV|weblogic|weblogic_apac_dev_core|iv2apac|CORE
+APAC|STG|weblogic|weblogic_apac_stg_core|iv2apac|CORE
+AMER|DEV|weblogic|weblogic_amer_dev_core|iv2amer|CORE
+AMER|PRD|weblogic|weblogic_amer_prd_core|iv2amer|CORE
