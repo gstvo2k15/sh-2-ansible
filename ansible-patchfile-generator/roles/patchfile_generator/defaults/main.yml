@@ -1,0 +1,41 @@
+---
+patch_valid_products:
+  - java
+  - apache
+  - apache_sso
+  - tomcat
+  - jbossews
+  - jbosseap
+  - weblogic
+
+patch_java_inventory_files:
+  - tomcat.ini
+  - jbossews.ini
+  - jbosseap.ini
+  - weblogic.ini
+
+# Repositories. Override these from Tower/AAP variables.
+patch_inventory_repo_url: ""
+patch_inventory_repo_version: main
+
+patch_output_repo_url: ""
+patch_output_repo_version: main
+
+# Working directory exists only for the duration of the job.
+patch_work_root: "/tmp/patchfile-generator-{{ lookup('pipe', 'date +%s') }}"
+patch_inventory_checkout: "{{ patch_work_root }}/inventory"
+patch_output_checkout: "{{ patch_work_root }}/output"
+
+# Path inside the inventory repository containing *.ini files.
+patch_inventory_subdir: inventories
+
+# Paths inside the output repository.
+patch_hostfiles_subdir: patching
+patch_varfiles_subdir: vars
+
+# Commit identity used by the Tower/AAP job.
+patch_git_user_name: "AAP Patchfile Generator"
+patch_git_user_email: "aap-patchfiles@localhost"
+
+# Push changes at the end of the job.
+patch_git_push: true

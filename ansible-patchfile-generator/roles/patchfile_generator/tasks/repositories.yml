@@ -1,0 +1,31 @@
+---
+- name: Create work directory
+  ansible.builtin.file:
+    path: "{{ patch_work_root }}"
+    state: directory
+    mode: "0700"
+
+- name: Checkout inventory repository
+  ansible.builtin.git:
+    repo: "{{ patch_inventory_repo_url }}"
+    dest: "{{ patch_inventory_checkout }}"
+    version: "{{ patch_inventory_repo_version }}"
+    update: true
+    force: true
+
+- name: Checkout output repository
+  ansible.builtin.git:
+    repo: "{{ patch_output_repo_url }}"
+    dest: "{{ patch_output_checkout }}"
+    version: "{{ patch_output_repo_version }}"
+    update: true
+    force: true
+
+- name: Create output directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ patch_output_checkout }}/{{ patch_hostfiles_subdir }}"
+    - "{{ patch_output_checkout }}/{{ patch_varfiles_subdir }}"

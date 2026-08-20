@@ -1,0 +1,35 @@
+---
+- name: Validate input
+  ansible.builtin.include_tasks: validate.yml
+
+- name: Prepare repositories
+  ansible.builtin.include_tasks: repositories.yml
+
+- name: Read source inventories
+  ansible.builtin.include_tasks: inventories.yml
+
+- name: Build logical patch groups
+  ansible.builtin.set_fact:
+    patch_groups: "{{ patch_inventory_payload | patch_build_groups(product) }}"
+
+- name: Fail when no valid hosts were found
+  ansible.builtin.assert:
+    that:
+      - patch_groups | length > 0
+    fail_msg: "No valid hosts were found for product={{ product }}."
+
+- name: Generate host files and YAML varfiles
+  ansible.builtin.include_tasks: generate.yml
+
+- name: Publish generated files
+  ansible.builtin.include_tasks: publish.yml
+  when: patch_git_push | bool
+
+- name: Show generated files
+  ansible.builtin.debug:
+    msg:
+      product: "{{ product }}"
+      change: "{{ change }}"
+      groups: "{{ patch_groups | length }}"
+      output_repository: "{{ patch_output_repo_url }}"
+      output_branch: "{{ patch_output_repo_version }}"

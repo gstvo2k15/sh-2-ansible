@@ -1,0 +1,19 @@
+---
+- name: Write grouped host files
+  ansible.builtin.copy:
+    dest: "{{ patch_output_checkout }}/{{ patch_hostfiles_subdir }}/{{ item.host_file }}"
+    content: "{{ (item.hosts | join('\n')) ~ '\n' }}"
+    mode: "0644"
+  loop: "{{ patch_groups }}"
+  loop_control:
+    label: "{{ item.host_file }}"
+
+- name: Write YAML varfiles
+  ansible.builtin.template:
+    src: varfile.yml.j2
+    dest: >-
+      {{ patch_output_checkout }}/{{ patch_varfiles_subdir }}/{{ item.host_file }}_{{ item.output_location }}_{{ product }}_{{ item.region | upper }}_{{ change }}.yml
+    mode: "0644"
+  loop: "{{ patch_groups }}"
+  loop_control:
+    label: "{{ item.host_file }}"

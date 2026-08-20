@@ -1,0 +1,7 @@
+---
+- name: Generate patch host files and varfiles
+  hosts: localhost
+  gather_facts: false
+
+  roles:
+    - role: patchfile_generator

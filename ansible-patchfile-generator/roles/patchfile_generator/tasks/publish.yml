@@ -1,0 +1,58 @@
+---
+- name: Configure Git author
+  ansible.builtin.command:
+    argv:
+      - git
+      - config
+      - "{{ item.key }}"
+      - "{{ item.value }}"
+    chdir: "{{ patch_output_checkout }}"
+  loop:
+    - { key: "user.name", value: "{{ patch_git_user_name }}" }
+    - { key: "user.email", value: "{{ patch_git_user_email }}" }
+  changed_when: false
+
+- name: Stage generated files
+  ansible.builtin.command:
+    argv:
+      - git
+      - add
+      - "{{ patch_hostfiles_subdir }}"
+      - "{{ patch_varfiles_subdir }}"
+    chdir: "{{ patch_output_checkout }}"
+  changed_when: true
+
+- name: Check whether generated content changed
+  ansible.builtin.command:
+    argv:
+      - git
+      - diff
+      - --cached
+      - --quiet
+  chdir: "{{ patch_output_checkout }}"
+  register: patch_git_diff
+  changed_when: false
+  failed_when: patch_git_diff.rc not in [0, 1]
+
+- name: Commit generated files
+  ansible.builtin.command:
+    argv:
+      - git
+      - commit
+      - -m
+      - "{{ change }} - generated {{ product }} patch files"
+    chdir: "{{ patch_output_checkout }}"
+  when: patch_git_diff.rc == 1
+  register: patch_git_commit
+  changed_when: true
+
+- name: Push generated files
+  ansible.builtin.command:
+    argv:
+      - git
+      - push
+      - origin
+      - "{{ patch_output_repo_version }}"
+    chdir: "{{ patch_output_checkout }}"
+  when: patch_git_diff.rc == 1
+  changed_when: true

@@ -1,0 +1,32 @@
+---
+- name: Require product and change
+  ansible.builtin.assert:
+    that:
+      - product is defined
+      - change is defined
+      - product | length > 0
+      - change | length > 0
+    fail_msg: "Required variables: product and change."
+
+- name: Normalize product
+  ansible.builtin.set_fact:
+    product: "{{ product | lower }}"
+
+- name: Validate product
+  ansible.builtin.assert:
+    that:
+      - product in patch_valid_products
+    fail_msg: "Invalid product '{{ product }}'. Valid products: {{ patch_valid_products | join(', ') }}"
+
+- name: Validate change
+  ansible.builtin.assert:
+    that:
+      - change is match('^CHG[0-9]+$')
+    fail_msg: "Invalid change '{{ change }}'. Expected format: CHG followed by digits."
+
+- name: Validate repository variables
+  ansible.builtin.assert:
+    that:
+      - patch_inventory_repo_url | length > 0
+      - patch_output_repo_url | length > 0
+    fail_msg: "patch_inventory_repo_url and patch_output_repo_url must be defined."
