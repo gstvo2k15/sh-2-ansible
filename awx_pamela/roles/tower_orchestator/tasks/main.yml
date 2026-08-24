@@ -1,0 +1,40 @@
+---
+- name: Remove previous Elastic entries
+  import_tasks: 01_delete_elastic.yml
+  tags: delete_elk
+
+- name: Get service token
+  import_tasks: 02_get_token.yml
+  tags: token
+
+- name: Derive runtime values from Survey
+  import_tasks: 03_derive.yml
+  tags: derive
+
+- name: Create inventory
+  import_tasks: 04_create_inventory.yml
+  tags: inventory
+
+- name: Create filtered inventory hosts
+  import_tasks: 05_create_filtered_hosts.yml
+  tags: sources
+
+- name: Generate adhoc job template
+  import_tasks: 06_create_adhoc_template.yml
+  tags: template
+
+- name: Assign credentials to job template
+  import_tasks: 07_assign_credentials.yml
+  tags: credentials
+
+- name: Launch job template
+  import_tasks: 08_launch_template.yml
+  tags: launch
+
+- name: Delete Adhoc template
+  import_tasks: 09_delete_adhoc_template.yml
+  tags: delete_template
+
+- name: Delete Adhoc inventory
+  import_tasks: 10_delete_inventory.yml
+  tags: delete_inv
