@@ -1,0 +1,163 @@
+---
+- name: Normalize survey inputs parsed via AWX cli
+  set_fact:
+    region_norm: "{{ (region | mandatory | upper | trim ) }}"
+    env_norm:    "{{ (envs   | mandatory | upper | trim ) }}"
+    product_norm: "{{ (product | mandatory | trim ) }}"
+    update: "{{ (update | mandatory | lower | trim ) }}"
+    instance_group: "{{ (instance_group | mandatory | trim ) }}"
+    data_env: "{{ (data_env | mandatory | trim ) }}"
+    is_ETS: "{{ (is_ETS | mandatory | trim ) }}"
+    location_zone: "{{ (location_zone | mandatory |trim ) }}"
+
+- name: Normalize limit parsed via AWX cli
+  set_fact:
+    limit_defined: "{{ product_norm }}_{{ region | lower | trim }}_{{ envs | lower | trim }}_{{ location_zone | lower | trim }}"
+
+- name: Convert DMZI to Intranet for IBM VDC Amer limits only
+  set_fact:
+    limit_defined: "{{ limit_defined | regex_replace('_dmzi$','_intranet') }}"
+  when:
+    - limit_defined.startswith('sso_as_a_service_ibm_vdc_amer_')
+    - limit_defined.endswith('_dmzi')
+
+
+- name: Debug - generic limit
+  debug:
+    msg: "Generic limit (before special handling): {{ limit_defined }}"
+
+
+- name: Set_fact of double_region_products
+  set_fact:
+    double_region_products:
+      - csa_imported_apache_dmzi
+
+- name: Starting block for create_inventory (only for double-region products)
+  block:
+
+    - name: Adjust limit for the special double-region products
+      set_fact:
+        limit_defined: >-
+          {{
+            product_norm + '_' + (region | lower) + '_' + (region | lower) + '_' +
+            (envs | lower) + '_' + (location_zone | lower)
+          }}
+
+    - name: Debug - limit after double-region fix
+      debug:
+        msg: "Adjusted limit (double region): {{ limit_defined }}"
+  when: product_norm in double_region_products
+
+
+- name: Set_fact of single_region_products
+  set_fact:
+    single_region_products:
+      - apache_dmzi_apac
+      - apache_dmzi_amer
+
+- name: Starting block for create_inventory (only for double-region products)
+  block:
+
+    - name: Adjust limit for the special double-region products
+      set_fact:
+        limit_defined: >-
+          {{
+            product_norm + '_' + (region | lower) + '_' +
+            (envs | lower) + '_' + (location_zone | lower)
+          }}
+
+    - name: Debug - limit after single-region fix
+      debug:
+        msg: "Adjusted limit (single region): {{ limit_defined }}"
+  when: product_norm in single_region_products
+
+
+- name: Derive product family from product string
+  set_fact:
+    product_family: >-
+      {% set p = product_norm %}
+      {% if 'tomcat' in p %}tomcat
+      {% elif 'weblogic' in p %}weblogic
+      {% elif 'jboss_ews' in p %}jboss_ews
+      {% elif 'jbosseap' in p %}jbosseap
+      {% elif 'sso' in p %}sso
+      {% elif 'apache' in p %}apache
+      {% elif 'iis' in p %}iis
+      {% elif 'was' in p or 'websphere' in p %}was
+      {% else %}UNKNOWN{% endif %}
+
+- name: Normalize product_family
+  set_fact:
+    product_family: "{{ product_family | trim }}"
+
+- name: Abort if product family could not be detected
+  assert:
+    that:
+      - product_family != 'UNKNOWN'
+      - product_family in product_map
+    fail_msg: Unable to determine product family from "{{ product_norm }}" (product_family="{{ product_family }}")
+
+- name: Select playbook + inventory source path
+  set_fact:
+    playbook_path: "{{ product_map[product_family].playbook }}"
+    ini_source_path: "{{ product_map[product_family].ini }}"
+
+- name: Derive zone override (dmz/ets/ibi) from product string
+  set_fact:
+    zone_override: >-
+      {% set p = limit_defined %}
+      {% if ('_ibi' in p) or ('ibi' in p) %}ibi
+      {% elif ('_ets' in p) or ('ets' in p) %}ets
+      {% elif ('_dmz' in p) or ('dmzi' in p) %}dmz
+      {% else %}none{% endif %}
+
+- name: Normalize zone_override
+  set_fact:
+    zone_override: "{{ zone_override | trim | lower }}"
+
+- name: Validate credential lookup
+  assert:
+    that:
+      - region_norm in region_credentials
+      - zone_override == 'none' or zone_override in zone_credentials
+    fail_msg: "Invalid region_norm='{{ region_norm }}' or zone_override='{{ zone_override }}'"
+
+- name: Select credential id (zone override > region)
+  set_fact:
+    cred_id: >-
+      {{
+        (
+          zone_credentials[zone_override]
+          if zone_override != 'none'
+          else region_credentials[region_norm]
+        ) | int
+      }}
+
+- name: Set instance_group_name (with fallback)
+  set_fact:
+    instance_group_name: >-
+      {{ region_instance_groups[region_norm] | default('MiddlewareFR') }}
+    instance_group: >-
+      {{ region_instance_groups[region_norm] | default('MiddlewareFR') }}
+
+- name: Normalize instance_group override
+  set_fact:
+    instance_group_name_override: "{{ (instance_group | default ('') ) | trim }}"
+
+- name: Select instance_group_id after override
+  set_fact:
+    instance_group_name_final: >-
+      {{
+        instance_group_name_override
+        if instance_group_name_override | length > 0
+        else region_instance_groups[region_norm]
+      }}
+
+- name: Resolve instance_group_id from final name
+  set_fact:
+    instance_group_id: "{{ instance_group_name_to_id[instance_group_name_final]}}"
+  when: instance_group_name_final is not none
+
+- name: Set launch limit to selected product
+  set_fact:
+    launch_limit: "{{ limit_defined | lower }}"
