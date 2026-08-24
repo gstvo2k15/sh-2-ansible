@@ -17,8 +17,7 @@
     argv:
       - git
       - add
-      - "{{ patch_hostfiles_subdir }}"
-      - "{{ patch_varfiles_subdir }}"
+      - generated
     chdir: "{{ patch_output_checkout }}"
   changed_when: true
 
@@ -52,7 +51,7 @@
       - git
       - push
       - origin
-      - "{{ patch_output_repo_version }}"
-    chdir: "{{ patch_output_checkout }}"
+      - "{{ patch_repository_version }}"
+    chdir: "{{ patch_repository_checkout }}"
   when: patch_git_diff.rc == 1
   changed_when: true

@@ -28,5 +28,5 @@
   ansible.builtin.assert:
     that:
       - patch_inventory_repo_url | length > 0
-      - patch_output_repo_url | length > 0
-    fail_msg: "patch_inventory_repo_url and patch_output_repo_url must be defined."
+      - patch_repository_url | length > 0
+    fail_msg: "patch_inventory_repo_url and patch_repository_url must be defined."

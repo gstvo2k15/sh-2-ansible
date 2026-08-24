@@ -21,7 +21,7 @@ def _attr(rest, key):
     return match.group(1).lower() if match else None
 
 
-def patch_build_groups(payload, product):
+def build_patch_groups(payload, product):
     """
     Reproduces the intended logic of generate_product_hosts.sh +
     generate_product_varfiles.sh + generate_varfile.sh.
@@ -91,5 +91,5 @@ def patch_build_groups(payload, product):
 class FilterModule(object):
     def filters(self):
         return {
-            "patch_build_groups": patch_build_groups,
+            "build_patch_groups": build_patch_groups,
         }

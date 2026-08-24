@@ -1,35 +1,24 @@
 ---
-- name: Validate input
-  ansible.builtin.include_tasks: validate.yml
+- name: 01 - Validate input
+  ansible.builtin.include_tasks: 01-validate.yml
 
-- name: Prepare repositories
-  ansible.builtin.include_tasks: repositories.yml
+- name: 02 - Prepare repositories
+  ansible.builtin.include_tasks: 02-repositories.yml
 
-- name: Read source inventories
-  ansible.builtin.include_tasks: inventories.yml
+- name: 03 - Read source inventories
+  ansible.builtin.include_tasks: 03-inventories.yml
 
-- name: Build logical patch groups
+- name: 04 - Fail when no valid hosts were found
   ansible.builtin.set_fact:
-    patch_groups: "{{ patch_inventory_payload | patch_build_groups(product) }}"
+    patch_groups: >-
+      {{ 
+        patch_inventory_payload
+        | build_patch_groups(product)
+      }}
 
-- name: Fail when no valid hosts were found
-  ansible.builtin.assert:
-    that:
-      - patch_groups | length > 0
-    fail_msg: "No valid hosts were found for product={{ product }}."
+- name: 05 - Generate host files and YAML varfiles
+  ansible.builtin.include_tasks: 04-generate.yml
 
-- name: Generate host files and YAML varfiles
-  ansible.builtin.include_tasks: generate.yml
-
-- name: Publish generated files
-  ansible.builtin.include_tasks: publish.yml
+- name: 06 - Publish generated files
+  ansible.builtin.include_tasks: 05-publish.yml
   when: patch_git_push | bool
-
-- name: Show generated files
-  ansible.builtin.debug:
-    msg:
-      product: "{{ product }}"
-      change: "{{ change }}"
-      groups: "{{ patch_groups | length }}"
-      output_repository: "{{ patch_output_repo_url }}"
-      output_branch: "{{ patch_output_repo_version }}"

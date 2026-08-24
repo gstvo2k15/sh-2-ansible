@@ -9,29 +9,33 @@ patch_valid_products:
   - weblogic
 
 patch_java_inventory_files:
+  - apache.ini
+  - apache_sso.ini
   - tomcat.ini
   - jbossews.ini
   - jbosseap.ini
   - weblogic.ini
 
+
+# Temp workdir for cloned repos
+patch_work_root: "/tmp"
+
+
 # Repositories. Override these from Tower/AAP variables.
-patch_inventory_repo_url: ""
-patch_inventory_repo_version: main
+patch_inventory_repo_url: "https://github.com/scm/middleware/elastic_inventory.git"
+patch_inventory_repo_version: develop
+patch_inventory_checkout: "{{ patch_work_root }}/inventories"
 
-patch_output_repo_url: ""
-patch_output_repo_version: main
-
-# Working directory exists only for the duration of the job.
-patch_work_root: "/tmp/patchfile-generator-{{ lookup('pipe', 'date +%s') }}"
-patch_inventory_checkout: "{{ patch_work_root }}/inventory"
-patch_output_checkout: "{{ patch_work_root }}/output"
+patch_repository_url: "https://github.com/scm/middleware/ansible-patchfile-generator.git"
+patch_repository_version: develop
+patch_repository_checkout: "{{ patch_work_root }}/patchfiles"
 
 # Path inside the inventory repository containing *.ini files.
 patch_inventory_subdir: inventories
 
 # Paths inside the output repository.
-patch_hostfiles_subdir: patching
-patch_varfiles_subdir: vars
+patch_hostfiles_subdir: generated/patching
+patch_varfiles_subdir: generated/vars
 
 # Commit identity used by the Tower/AAP job.
 patch_git_user_name: "AAP Patchfile Generator"
