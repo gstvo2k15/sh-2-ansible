@@ -1,0 +1,45 @@
+---
+- name: Select inventory filenames
+  ansible.builtin.set_fact:
+    patch_inventory_names: >-
+      {{
+        patch_java_inventory_files
+        if product == 'java'
+        else [product ~ '.ini']
+      }}
+
+- name: Find selected inventory files
+  ansible.builtin.find:
+    paths: "{{ patch_inventory_checkout }}/{{ patch_inventory_subdir }}"
+    recurse: true
+    file_type: file
+    patterns: "{{ patch_inventory_names }}"
+  register: patch_inventory_find
+
+- name: Fail when no inventory file exists
+  ansible.builtin.assert:
+    that:
+      - patch_inventory_find.files | length > 0
+    fail_msg: >-
+      No inventory files found for product={{ product }}.
+      Searched for: {{ patch_inventory_names | join(', ') }}
+
+- name: Read inventory files
+  ansible.builtin.slurp:
+    src: "{{ item.path }}"
+  loop: "{{ patch_inventory_find.files }}"
+  register: patch_inventory_slurp
+
+- name: Build inventory payload
+  ansible.builtin.set_fact:
+    patch_inventory_payload: >-
+      {{
+        (patch_inventory_payload | default([]))
+        +
+        [{
+          'path': item.item.path,
+          'name': (item.item.path | basename | regex_replace('\.ini$', '')),
+          'content_b64': item.content
+        }]
+      }}
+  loop: "{{ patch_inventory_slurp.results }}"

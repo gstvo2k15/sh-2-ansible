@@ -1,0 +1,24 @@
+---
+- name: 01 - Validate input
+  ansible.builtin.include_tasks: 01-validate.yml
+
+- name: 02 - Prepare repositories
+  ansible.builtin.include_tasks: 02-repositories.yml
+
+- name: 03 - Read source inventories
+  ansible.builtin.include_tasks: 03-inventories.yml
+
+- name: 04 - Fail when no valid hosts were found
+  ansible.builtin.set_fact:
+    patch_groups: >-
+      {{ 
+        patch_inventory_payload
+        | build_patch_groups(product)
+      }}
+
+- name: 05 - Generate host files and YAML varfiles
+  ansible.builtin.include_tasks: 04-generate.yml
+
+- name: 06 - Publish generated files
+  ansible.builtin.include_tasks: 05-publish.yml
+  when: patch_git_push | bool

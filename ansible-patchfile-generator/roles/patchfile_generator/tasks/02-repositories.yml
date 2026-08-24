@@ -1,0 +1,43 @@
+---
+- name: Create temporal Git asskpass script
+  ansible.builtin.copy:
+    dest: "{{ patch_work_root }}/.git-askpass.sh"
+    mode: "0700"
+    content: |
+      #!/bin/sh
+      case "$1" in
+        Username*) printf '%s\n' '{{ bitbucket_user }}' ;;
+        Password*) printf '%s\n' '{{ bitbucket_pass }}' ;;
+      esac
+  no_log: true
+
+- name: Checkout inventory repository
+  ansible.builtin.git:
+    repo: "{{ patch_inventory_repo_url }}"
+    dest: "{{ patch_inventory_checkout }}"
+    version: "{{ patch_inventory_repo_version }}"
+    update: true
+    force: true
+  environment: 
+    GIT_ASKPASS: "{{ patch_work_root }}/.git-askpass.sh"
+    GIT_TERMINAL_PROMPT: "0"
+
+- name: Checkout output repository
+  ansible.builtin.git:
+    repo: "{{ patch_output_repo_url }}"
+    dest: "{{ patch_output_checkout }}"
+    version: "{{ patch_output_repo_version }}"
+    update: true
+    force: true
+  environment: 
+    GIT_ASKPASS: "{{ patch_work_root }}/.git-askpass.sh"
+    GIT_TERMINAL_PROMPT: "0"
+
+- name: Create output directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ patch_repository_checkout }}/{{ patch_hostfiles_subdir }}"
+    - "{{ patch_repository_checkout }}/{{ patch_varfiles_subdir }}"

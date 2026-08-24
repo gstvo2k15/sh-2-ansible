@@ -1,0 +1,13 @@
+custom_hosts_list:
+{% for host in item.hosts %}
+  - {{ host }}
+{% endfor %}
+
+generate_excel: 'False'
+location: {{ item.output_location }}
+patch_envs:
+  - {{ item.env | upper }}
+patch_product: {{ 'apache' if product == 'apache_sso' else product }}
+patch_wave: '{{ change }}'
+previous_patch_wave: ''
+region: {{ item.region | upper }}
